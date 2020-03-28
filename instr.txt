@@ -1,0 +1,38 @@
+add      R   0110011    0x0    0x00
+sub      R   0110011    0x0    0x20
+xor      R   0110011    0x4    0x00
+or       R   0110011    0x6    0x00
+and      R   0110011    0x7    0x00
+sll      R   0110011    0x1    0x00
+srl      R   0110011    0x5    0x00
+sra      R   0110011    0x5    0x20
+slt      R   0110011    0x2    0x00
+addi     I   0010011    0x0
+xori     I   0010011    0x4
+ori      I   0010011    0x6
+andi     I   0010011    0x7
+slli     I   0010011    0x1
+srli     I   0010011    0x5
+srai     I   0010011    0x5
+slti     I   0010011    0x2
+sltiu    I   0010011    0x3
+lb       I   0000011    0x0
+lh       I   0000011    0x1
+lw       I   0000011    0x2
+lbu      I   0000011    0x4
+lhu      I   0000011    0x5
+sb       S   0100011    0x0
+sh       S   0100011    0x1
+sw       S   0100011    0x2
+beq      B   1100011    0x0
+bne      B   1100011    0x1
+blt      B   1100011    0x4
+bge      B   1100011    0x5
+bltu     B   1100011    0x6
+bgeu     B   1100011    0x7
+jal      J   1101111
+jalr     I   1100111    0x0
+lui      U   0110111
+auipc    U   0010111
+ecall    I   1110011    0x0
+ebreak   I   1110011    0x0
