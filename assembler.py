@@ -73,7 +73,7 @@ def encode_instruction(instr):
         _, opcode, f3 = info
         rd_i = int(rd[1:])
         rs1_i = int(rs1[1:])
-        imm_i = int(imm)
+        imm_i = int(imm, 0)
 
         if is_srai(op):
             imm_i = imm_i | (0x20 << 5)
@@ -91,7 +91,7 @@ def encode_instruction(instr):
         _, opcode, f3 = info
         rs1_i = int(rs1[1:])
         rs2_i = int(rs2[1:])
-        imm_i = int(imm)
+        imm_i = int(imm, 0)
 
         print('op: {}'.format(op))
         print('rs1: {}, rs1_i = {}'.format(rs1, rs1_i))
@@ -107,7 +107,7 @@ def encode_instruction(instr):
 
         rs1_i = int(rs1[1:])
         rs2_i = int(rs2[1:])
-        imm_i = int(imm)
+        imm_i = int(imm, 0)
 
         print('op: {}'.format(op))
         print('rs1: {}, rs1_i = {}'.format(rs1, rs1_i))
@@ -121,7 +121,7 @@ def encode_instruction(instr):
         op, rd, imm = components
 
         rd_i = int(rs1[1:])
-        imm_i = int(imm)
+        imm_i = int(imm, 0)
 
         print('op: {}'.format(op))
         print('rd: {}, rd_i = {}'.format(rd, rd_i))
@@ -134,7 +134,7 @@ def encode_instruction(instr):
         _, opcode = info
 
         rd_i = int(rs1[1:])
-        imm_i = int(imm)
+        imm_i = int(imm, 0)
 
         print('op: {}'.format(op))
         print('rd: {}, rd_i = {}'.format(rd, rd_i))
@@ -145,7 +145,7 @@ def encode_instruction(instr):
     print('ERROR: unsupported instruction type ' + typ)
 
 def get_components(instr):
-    return instr.replace('(', ' ').replace(')', ' ').replace(',', '').split()
+    return instr.replace('(', ' ').replace(')', ' ').replace(',', ' ').split()
 
 def encode_rtype(opcode, rd, f3, rs1, rs2, f7):
     return ((opcode & 0x7f)
@@ -175,10 +175,17 @@ def encode_stype(opcode, f3, rs1, rs2, imm):
             | ((imm_hi7 & 0x7f) << 25))
 
 def encode_btype(opcode, f3, rs1, rs2, imm):
-    imm_1_4 = (imm >> 1) & 0x7
-    imm_5_10 = (imm >> 5) & 0xf
-    imm_11 = (imm >> 11) & 0x1
-    imm_12 = (imm >> 12) & 0x1
+    # imm_1_4 = (imm >> 1) & 0xf
+    # imm_5_10 = (imm >> 5) & 0x3f
+    # imm_11 = (imm >> 11) & 0x1
+    # imm_12 = (imm >> 12) & 0x1
+
+    imm_1_4 = imm & 0xf
+    imm_5_10 = (imm >> 4) & 0x3f
+    imm_11 = (imm >> 10) & 0x1
+    imm_12 = (imm >> 11) & 0x1
+
+    print(bin(imm_5_10))
 
     return ((opcode & 0x7f)
             | (imm_11 << 7)
