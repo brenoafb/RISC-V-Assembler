@@ -40,7 +40,7 @@ INSTRUCTIONS = {
         'ebreak'  : ('I', int('1110011', 2), 0x0)
 }
 
-def preprocess(asm_str):
+def preprocess(asm_str: str) -> list:
     """
     convert assembly code to a list of instructions and labels
     """
@@ -49,7 +49,7 @@ def preprocess(asm_str):
     lines = asm_str.split('\n')
     return list(filter(lambda x: len(x) > 0, lines))
 
-def first_pass(code):
+def first_pass(code: list) -> dict:
     """
     takes assembly code (as a list) and returns a symbol table
     """
@@ -65,7 +65,7 @@ def first_pass(code):
 
     return symbol_table
 
-def encode_instruction(instr):
+def encode_instruction(instr: str) -> int:
     """
     encodes a single instruction to machine code
     """
@@ -138,7 +138,7 @@ def encode_instruction(instr):
 
     return encoded
 
-def get_components(instr):
+def get_components(instr: str) -> str:
     return instr.replace('(', ' ').replace(')', ' ').replace(',', ' ').split()
 
 def encode_rtype(opcode, rd, f3, rs1, rs2, f7):
