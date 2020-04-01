@@ -40,11 +40,38 @@ INSTRUCTIONS = {
         'ebreak'  : ('I', int('1110011', 2), 0x0)
 }
 
+def preprocess(asm_str):
+    """
+    convert assembly code to a list of instructions and labels
+    """
+    # TODO: handle comments
+    # detect non-code lines more robustly
+    lines = asm_str.split('\n')
+    return list(filter(lambda x: len(x) > 0, lines))
+
+def first_pass(code):
+    """
+    takes assembly code (as a list) and returns a symbol table
+    """
+
+    symbol_table = {}
+    address = 0  # current address (in 32-bit words)
+    for line in code:
+        if is_label(line):
+            # assuming every label is unique
+            symbol_table[get_label(line)] = address
+        else:
+            address += 1
+
+    return symbol_table
+
 def encode_instruction(instr):
-    print()
-    print(instr)
+    """
+    encodes a single instruction to machine code
+    """
+
+    encoded = 0
     components = get_components(instr)
-    print(components)
     info = INSTRUCTIONS[components[0]]
     typ = info[0]
     if typ == 'R':
@@ -54,16 +81,9 @@ def encode_instruction(instr):
         rs1_i = int(rs1[1:])
         rs2_i = int(rs2[1:])
 
-        print('op: {}'.format(op))
-        print('rd: {}, rd_i = {}'.format(rd, rd_i))
-        print('rs1: {}, rs1_i = {}'.format(rs1, rs1_i))
-        print('rs2: {}, rs2_i = {}'.format(rs2, rs2_i))
-        print('f3: {:b}'.format(f3))
-        print('f7: {:b}'.format(f7))
+        encoded = encode_rtype(opcode, rd_i, f3, rs1_i, rs2_i, f7)
 
-        return encode_rtype(opcode, rd_i, f3, rs1_i, rs2_i, f7)
-
-    if typ == 'I':
+    elif typ == 'I':
         op = components[0]
         if is_load(op):
             _, rd, imm, rs1 = components
@@ -78,30 +98,18 @@ def encode_instruction(instr):
         if is_srai(op):
             imm_i = imm_i | (0x20 << 5)
 
-        print('op: {}'.format(op))
-        print('rd: {}, rd_i = {}'.format(rd, rd_i))
-        print('rs1: {}, rs1_i = {}'.format(rs1, rs1_i))
-        print('imm: {}'.format(imm))
-        print('f3: {0:b}'.format(f3))
+        encoded = encode_itype(opcode, rd_i, f3, rs1_i, imm_i)
 
-        return encode_itype(opcode, rd_i, f3, rs1_i, imm_i)
-
-    if typ == 'S':
+    elif typ == 'S':
         op, rs2, imm, rs1 = components
         _, opcode, f3 = info
         rs1_i = int(rs1[1:])
         rs2_i = int(rs2[1:])
         imm_i = int(imm, 0)
 
-        print('op: {}'.format(op))
-        print('rs1: {}, rs1_i = {}'.format(rs1, rs1_i))
-        print('rs2: {}, rs2_i = {}'.format(rs2, rs2_i))
-        print('imm: {}'.format(imm))
-        print('f3: {0:b}'.format(f3))
+        encoded = encode_stype(opcode, f3, rs1_i, rs2_i, imm_i)
 
-        return encode_stype(opcode, f3, rs1_i, rs2_i, imm_i)
-
-    if typ == 'B':
+    elif typ == 'B':
         op, rs1, rs2, imm = components
         _, opcode, f3 = info
 
@@ -109,40 +117,26 @@ def encode_instruction(instr):
         rs2_i = int(rs2[1:])
         imm_i = int(imm, 0)
 
-        print('op: {}'.format(op))
-        print('rs1: {}, rs1_i = {}'.format(rs1, rs1_i))
-        print('rs2: {}, rs2_i = {}'.format(rs2, rs2_i))
-        print('imm: {}'.format(imm))
-        print('f3: {0:b}'.format(f3))
+        encoded = encode_btype(opcode, f3, rs1_i, rs2_i, imm_i)
 
-        return encode_btype(opcode, f3, rs1_i, rs2_i, imm_i)
-
-    if typ == 'J':
+    elif typ == 'J':
         op, rd, imm = components
 
         rd_i = int(rs1[1:])
         imm_i = int(imm, 0)
 
-        print('op: {}'.format(op))
-        print('rd: {}, rd_i = {}'.format(rd, rd_i))
-        print('imm: {}'.format(imm))
+        encoded = encode_jtype(opcode, rd_i, imm_i)
 
-
-        return encode_jtype(opcode, rd_i, imm_i)
-    if typ == 'U':
+    elif typ == 'U':
         op, rd, imm = components
         _, opcode = info
 
         rd_i = int(rs1[1:])
         imm_i = int(imm, 0)
 
-        print('op: {}'.format(op))
-        print('rd: {}, rd_i = {}'.format(rd, rd_i))
-        print('imm: {}'.format(imm))
+        encoded = encode_utype(opcode, rd_i, imm_i)
 
-        return encode_utype(opcode, rd_i, imm_i)
-
-    print('ERROR: unsupported instruction type ' + typ)
+    return encoded
 
 def get_components(instr):
     return instr.replace('(', ' ').replace(')', ' ').replace(',', ' ').split()
@@ -213,6 +207,12 @@ def encode_jtype(opcode, rd, imm):
             | (imm_11 << 20)
             | (imm_1_10 << 21)
             | (imm_20 << 31))
+
+def is_label(statement):
+    return statement.strip()[-1] == ':'
+
+def get_label(line):
+    return line.strip()[:-1]
 
 def is_load(op):
     return op in ['lb', 'lh', 'lw', 'lbu', 'lhu']

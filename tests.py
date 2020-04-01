@@ -1,4 +1,4 @@
-from assembler import encode_instruction
+from assembler import encode_instruction, preprocess, first_pass
 
 TESTS = {
   'add x10, x10, x11        ' : 0x00b50533,
@@ -115,6 +115,15 @@ TESTS = {
   'bgeu x2,x3,0x00000004    ' : 0x00317463,
   'bgeu x1,x4,0xffffffde    ' : 0xfa40fee3
 }
+
+EXAMPLE_CODE = """
+L0:
+add x1, x2, x3
+sub x3, x1, x2
+L1:
+addi x2, x3, 100
+sub  x2, x3, x1
+"""
 
 def test():
     for (instr, expected) in TESTS.items():
